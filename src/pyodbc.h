@@ -128,8 +128,8 @@ void* _pyodbc_malloc(const char* filename, int lineno, size_t len);
 void pyodbc_free(void* p);
 void pyodbc_leak_check();
 #else
-#define pyodbc_malloc malloc
-#define pyodbc_free free
+#define pyodbc_malloc PyObject_MALLOC
+#define pyodbc_free PyObject_FREE
 #endif
 
 void PrintBytes(void* p, size_t len);
