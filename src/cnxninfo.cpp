@@ -18,6 +18,11 @@ static PyObject* hashlib;       // The hashlib module if Python 2.5+
 static PyObject* sha;           // The sha module if Python 2.4
 static PyObject* update;        // The string 'update', used in GetHash.
 
+#include <map>
+#include <stdexcept>
+typedef std::map<Py_hash_t, PyObject*> TlsCnxnInfoMap;
+Py_TLS static TlsCnxnInfoMap *tls_cnxninfo_map;
+
 void CnxnInfo_init()
 {
     // Called during startup to give us a chance to import the hash code.  If we can't find it, we'll print a warning
@@ -150,11 +155,45 @@ static PyObject* CnxnInfo_New(Connection* cnxn)
     return info.Detach();
 }
 
+PyObject *
+_PyParallel_GetConnectionInfo(PyObject* pConnectionString, Connection* cnxn)
+{
+    Py_hash_t hash;
+    TlsCnxnInfoMap *tcim = NULL;
+    PyObject *info = NULL;
+
+    if (!Py_PXCTX())
+        __debugbreak();
+
+    if (!tls_cnxninfo_map) {
+        tls_cnxninfo_map = new TlsCnxnInfoMap();
+    }
+    tcim = tls_cnxninfo_map;
+    
+    hash = PyObject_Hash(pConnectionString);
+    try {
+        info = tcim->at(hash);
+        return info;
+    } catch (std::out_of_range &) {
+        ;
+    }
+
+    _PyParallel_EnableTLSHeap();
+    info = CnxnInfo_New(cnxn);
+    _PyParallel_DisableTLSHeap();
+
+    if (info)
+        tcim->operator[](hash) = info;
+
+    return info;
+}
 
 PyObject* GetConnectionInfo(PyObject* pConnectionString, Connection* cnxn)
 {
     // Looks-up or creates a CnxnInfo object for the given connection string.  The connection string can be a Unicode
     // or String object.
+    if (Py_PXCTX())
+        return _PyParallel_GetConnectionInfo(pConnectionString, cnxn);
 
     Object hash(GetHash(pConnectionString));
 
