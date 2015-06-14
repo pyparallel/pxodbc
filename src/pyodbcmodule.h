@@ -33,7 +33,29 @@ inline bool PyDecimal_Check(PyObject* p)
 {
     return Py_TYPE(p) == (_typeobject*)decimal_type;
 }
-extern HENV henv;
+
+extern HENV _henv;
+
+extern "C" {
+    HENV* _PyParallel_GetDbEnvp(void);
+}
+
+static __inline
+HENV*
+get_henvp(void)
+{
+    HENV *p = NULL;
+    if (Py_PXCTX())
+        p = _PyParallel_GetDbEnvp();
+
+    if (!p)
+        p = &_henv;
+
+    return p;
+}
+
+#define henv (*(get_henvp()))
+#define henvp (get_henvp())
 
 extern PyTypeObject RowType;
 extern PyTypeObject CursorType;

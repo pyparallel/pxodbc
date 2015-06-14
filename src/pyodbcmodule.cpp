@@ -128,7 +128,7 @@ static ExcInfo aExcInfos[] = {
 
 PyObject* decimal_type;
 
-HENV henv = SQL_NULL_HANDLE;
+HENV _henv = SQL_NULL_HANDLE;
 
 Py_UNICODE chDecimal = '.';
 
@@ -217,7 +217,7 @@ static bool AllocateEnv()
         }
     }
 
-    if (!SQL_SUCCEEDED(SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv)))
+    if (!SQL_SUCCEEDED(SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, henvp)))
     {
         Py_FatalError("Can't initialize module pyodbc.  SQLAllocEnv failed.");
         return false;
