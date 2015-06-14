@@ -56,6 +56,11 @@ public:
     {
         return p;
     }
+
+    Py_hash_t Hash()
+    {
+        return PyObject_Hash(this->Get());
+    }
 };
 
 
