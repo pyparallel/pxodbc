@@ -1,7 +1,7 @@
 
 
-#include "pyodbc.h"
-#include "pyodbcmodule.h"
+#include "pxodbc.h"
+#include "pxodbcmodule.h"
 #include "params.h"
 #include "cursor.h"
 #include "connection.h"
@@ -25,10 +25,10 @@ static void FreeInfos(ParamInfo* a, Py_ssize_t count)
     for (Py_ssize_t i = 0; i < count; i++)
     {
         if (a[i].allocated)
-            pyodbc_free(a[i].ParameterValuePtr);
+            pxodbc_free(a[i].ParameterValuePtr);
         Py_XDECREF(a[i].pParam);
     }
-    pyodbc_free(a);
+    pxodbc_free(a);
 }
 
 #define _MAKESTR(n) case n: return #n
@@ -354,7 +354,7 @@ static char* CreateDecimalString(long sign, PyObject* digits, long exp)
         // (1 2 3) exp = 2 --> '12300'
 
         len = sign + count + exp + 1; // 1: NULL
-        pch = (char*)pyodbc_malloc((size_t)len);
+        pch = (char*)pxodbc_malloc((size_t)len);
         if (pch)
         {
             char* p = pch;
@@ -372,7 +372,7 @@ static char* CreateDecimalString(long sign, PyObject* digits, long exp)
         // (1 2 3) exp = -2 --> 1.23 : prec = 3, scale = 2
 
         len = sign + count + 2; // 2: decimal + NULL
-        pch = (char*)pyodbc_malloc((size_t)len);
+        pch = (char*)pxodbc_malloc((size_t)len);
         if (pch)
         {
             char* p = pch;
@@ -393,7 +393,7 @@ static char* CreateDecimalString(long sign, PyObject* digits, long exp)
 
         len = sign + -exp + 3; // 3: leading zero + decimal + NULL
 
-        pch = (char*)pyodbc_malloc((size_t)len);
+        pch = (char*)pxodbc_malloc((size_t)len);
         if (pch)
         {
             char* p = pch;
@@ -598,9 +598,9 @@ bool BindParameter(Cursor* cur, Py_ssize_t index, ParamInfo& info)
           info.DecimalDigits, info.BufferLength, info.StrLen_or_Ind);
 
     SQLRETURN ret = -1;
-    Py_BEGIN_ALLOW_THREADS
+    //Py_BEGIN_ALLOW_THREADS
     ret = SQLBindParameter(cur->hstmt, (SQLUSMALLINT)(index + 1), SQL_PARAM_INPUT, info.ValueType, info.ParameterType, info.ColumnSize, info.DecimalDigits, info.ParameterValuePtr, info.BufferLength, &info.StrLen_or_Ind);
-    Py_END_ALLOW_THREADS;
+    //Py_END_ALLOW_THREADS;
 
     if (GetConnection(cur)->hdbc == SQL_NULL_HANDLE)
     {
@@ -628,9 +628,9 @@ void FreeParameterData(Cursor* cur)
         // MS ODBC will crash if we use an HSTMT after the HDBC has been freed.
         if (cur->cnxn->hdbc != SQL_NULL_HANDLE)
         {
-            Py_BEGIN_ALLOW_THREADS
+            //Py_BEGIN_ALLOW_THREADS
             SQLFreeStmt(cur->hstmt, SQL_RESET_PARAMS);
-            Py_END_ALLOW_THREADS
+            //Py_END_ALLOW_THREADS
         }
 
         FreeInfos(cur->paramInfos, cur->paramcount);
@@ -644,7 +644,7 @@ void FreeParameterInfo(Cursor* cur)
     // since this information is also freed in the less granular free_results function that clears everything.
 
     Py_XDECREF(cur->pPreparedSQL);
-    pyodbc_free(cur->paramtypes);
+    pxodbc_free(cur->paramtypes);
     cur->pPreparedSQL = 0;
     cur->paramtypes   = 0;
     cur->paramcount   = 0;
@@ -685,27 +685,27 @@ bool PrepareAndBind(Cursor* cur, PyObject* pSql, PyObject* original_params, bool
         if (PyUnicode_Check(pSql))
         {
             SQLWChar sql(pSql);
-            Py_BEGIN_ALLOW_THREADS
+            //Py_BEGIN_ALLOW_THREADS
             ret = SQLPrepareW(cur->hstmt, sql.get(), SQL_NTS);
             if (SQL_SUCCEEDED(ret))
             {
                 szErrorFunc = "SQLNumParams";
                 ret = SQLNumParams(cur->hstmt, &cParamsT);
             }
-            Py_END_ALLOW_THREADS
+            //Py_END_ALLOW_THREADS
         }
 #if PY_MAJOR_VERSION < 3
         else
         {
             TRACE("SQLPrepare(%s)\n", PyString_AS_STRING(pSql));
-            Py_BEGIN_ALLOW_THREADS
+            //Py_BEGIN_ALLOW_THREADS
             ret = SQLPrepare(cur->hstmt, (SQLCHAR*)PyString_AS_STRING(pSql), SQL_NTS);
             if (SQL_SUCCEEDED(ret))
             {
                 szErrorFunc = "SQLNumParams";
                 ret = SQLNumParams(cur->hstmt, &cParamsT);
             }
-            Py_END_ALLOW_THREADS
+            //Py_END_ALLOW_THREADS
         }
 #endif
 
@@ -735,7 +735,7 @@ bool PrepareAndBind(Cursor* cur, PyObject* pSql, PyObject* original_params, bool
         return false;
     }
 
-    cur->paramInfos = (ParamInfo*)pyodbc_malloc(sizeof(ParamInfo) * cParams);
+    cur->paramInfos = (ParamInfo*)pxodbc_malloc(sizeof(ParamInfo) * cParams);
     if (cur->paramInfos == 0)
     {
         PyErr_NoMemory();
@@ -792,7 +792,7 @@ static bool GetParamType(Cursor* cur, Py_ssize_t index, SQLSMALLINT& type)
 
     if (cur->paramtypes == 0)
     {
-        cur->paramtypes = reinterpret_cast<SQLSMALLINT*>(pyodbc_malloc(sizeof(SQLSMALLINT) * cur->paramcount));
+        cur->paramtypes = reinterpret_cast<SQLSMALLINT*>(pxodbc_malloc(sizeof(SQLSMALLINT) * cur->paramcount));
         if (cur->paramtypes == 0)
         {
             PyErr_NoMemory();
@@ -810,9 +810,9 @@ static bool GetParamType(Cursor* cur, Py_ssize_t index, SQLSMALLINT& type)
         SQLSMALLINT NullablePtr;
         SQLRETURN ret;
 
-        Py_BEGIN_ALLOW_THREADS
+        //Py_BEGIN_ALLOW_THREADS
         ret = SQLDescribeParam(cur->hstmt, (SQLUSMALLINT)(index + 1), &cur->paramtypes[index], &ParameterSizePtr, &DecimalDigitsPtr, &NullablePtr);
-        Py_END_ALLOW_THREADS
+        //Py_END_ALLOW_THREADS
 
         if (!SQL_SUCCEEDED(ret))
         {
@@ -834,7 +834,7 @@ struct NullParam
 PyTypeObject NullParamType =
 {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pyodbc.NullParam",         // tp_name
+    "pxodbc.NullParam",         // tp_name
     sizeof(NullParam),          // tp_basicsize
     0,                          // tp_itemsize
     0,                          // destructor tp_dealloc

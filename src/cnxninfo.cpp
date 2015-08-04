@@ -5,7 +5,7 @@
 //
 // We hash the connection string since it may contain sensitive information we wouldn't want exposed in a core dump.
 
-#include "pyodbc.h"
+#include "pxodbc.h"
 #include "cnxninfo.h"
 #include "connection.h"
 #include "wrapper.h"
@@ -97,7 +97,7 @@ static PyObject* CnxnInfo_New(Connection* cnxn)
     // released -- do not add an early exit.
 
     SQLRETURN ret;
-    Py_BEGIN_ALLOW_THREADS
+    //Py_BEGIN_ALLOW_THREADS
 
     char szVer[20];
     SQLSMALLINT cch = 0;
@@ -148,7 +148,7 @@ static PyObject* CnxnInfo_New(Connection* cnxn)
         SQLFreeStmt(hstmt, SQL_CLOSE);
     }
 
-    Py_END_ALLOW_THREADS
+    //Py_END_ALLOW_THREADS
 
     // WARNING: Released the lock now.
 
@@ -219,7 +219,7 @@ PyObject* GetConnectionInfo(PyObject* pConnectionString, Connection* cnxn)
 PyTypeObject CnxnInfoType =
 {
     PyVarObject_HEAD_INIT(0, 0)
-    "pyodbc.CnxnInfo",                                      // tp_name
+    "pxodbc.CnxnInfo",                                      // tp_name
     sizeof(CnxnInfo),                                       // tp_basicsize
     0,                                                      // tp_itemsize
     0,                                                      // destructor tp_dealloc

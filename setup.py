@@ -25,7 +25,7 @@ def _print(s):
 
 class VersionCommand(Command):
 
-    description = "prints the pyodbc version, determined from git"
+    description = "prints the pxodbc version, determined from git"
 
     user_options = []
 
@@ -73,7 +73,7 @@ def main():
         os.remove('MANIFEST')
 
     kwargs = {
-        'name': "pyodbc",
+        'name': "pxodbc",
         'version': version_str,
         'description': "DB API Module for ODBC",
 
@@ -83,7 +83,7 @@ def main():
         'maintainer':       "Michael Kleehammer",
         'maintainer_email': "michael@kleehammer.com",
         
-        'ext_modules': [Extension('pyodbc', files, **settings)],
+        'ext_modules': [Extension('pxodbc', files, **settings)],
 
         'license': 'MIT',
 
@@ -99,7 +99,7 @@ def main():
                        'Topic :: Database',
                        ],
 
-        'url': 'https://github.com/mkleehammer/pyodbc',
+        'url': 'https://github.com/mkleehammer/pxodbc',
         'cmdclass': { 'version' : VersionCommand,
                      'tags'    : TagsCommand }
         }
@@ -191,13 +191,13 @@ def get_compiler_settings(version_str):
 
 def add_to_path():
     """
-    Prepends the build directory to the path so pyodbcconf can be imported without installing it.
+    Prepends the build directory to the path so pxodbcconf can be imported without installing it.
     """
     # Now run the utility
   
     import imp
     library_exts  = [ t[0] for t in imp.get_suffixes() if t[-1] == imp.C_EXTENSION ]
-    library_names = [ 'pyodbcconf%s' % ext for ext in library_exts ]
+    library_names = [ 'pxodbcconf%s' % ext for ext in library_exts ]
      
     # Only go into directories that match our version number. 
      
@@ -212,7 +212,7 @@ def add_to_path():
                 sys.path.insert(0, top)
                 return
   
-    raise SystemExit('Did not find pyodbcconf')
+    raise SystemExit('Did not find pxodbcconf')
 
 
 def get_version():

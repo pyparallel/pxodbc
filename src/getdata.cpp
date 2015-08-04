@@ -2,8 +2,8 @@
 // The functions for reading a single value from the database using SQLGetData.  There is a different function for
 // every data type.
 
-#include "pyodbc.h"
-#include "pyodbcmodule.h"
+#include "pxodbc.h"
+#include "pxodbcmodule.h"
 #include "cursor.h"
 #include "connection.h"
 #include "errors.h"
@@ -81,7 +81,7 @@ public:
             }
             else
             {
-                pyodbc_free(buffer);
+                pxodbc_free(buffer);
             }
         }
     }
@@ -148,7 +148,7 @@ public:
             {
                 // We're Unicode, but ODBCCHAR and Py_UNICODE don't match, so maintain our own ODBCCHAR buffer.
                 bufferOwner = 0;
-                buffer      = (char*)pyodbc_malloc((size_t)newSize);
+                buffer      = (char*)pxodbc_malloc((size_t)newSize);
             }
 
             if (buffer == 0)
@@ -255,7 +255,7 @@ public:
         PyObject* result = PyUnicode_FromSQLWCHAR((const SQLWCHAR*)buffer, bytesUsed / element_size);
         if (result == 0)
             return 0;
-        pyodbc_free(buffer);
+        pxodbc_free(buffer);
         buffer = 0;
         return result;
     }
@@ -332,9 +332,9 @@ static PyObject* GetDataString(Cursor* cur, Py_ssize_t iCol)
         SQLRETURN ret;
         SQLLEN cbData = 0;
 
-        Py_BEGIN_ALLOW_THREADS
+        //Py_BEGIN_ALLOW_THREADS
         ret = SQLGetData(cur->hstmt, (SQLUSMALLINT)(iCol+1), nTargetType, buffer.GetBuffer(), buffer.GetRemaining(), &cbData);
-        Py_END_ALLOW_THREADS;
+        //Py_END_ALLOW_THREADS;
 
         if (cbData == SQL_NULL_DATA || (ret == SQL_SUCCESS && cbData < 0))
         {
@@ -464,9 +464,9 @@ static PyObject* GetDataDecimal(Cursor* cur, Py_ssize_t iCol)
     SQLLEN cbFetched = 0; // Note: will not include the NULL terminator.
 
     SQLRETURN ret;
-    Py_BEGIN_ALLOW_THREADS
+    //Py_BEGIN_ALLOW_THREADS
     ret = SQLGetData(cur->hstmt, (SQLUSMALLINT)(iCol+1), SQL_C_WCHAR, buffer, sizeof(buffer), &cbFetched);
-    Py_END_ALLOW_THREADS
+    //Py_END_ALLOW_THREADS
     if (!SQL_SUCCEEDED(ret))
         return RaiseErrorFromHandle("SQLGetData", cur->cnxn->hdbc, cur->hstmt);
 
@@ -541,9 +541,9 @@ static PyObject* GetDataBit(Cursor* cur, Py_ssize_t iCol)
     SQLLEN cbFetched;
     SQLRETURN ret;
 
-    Py_BEGIN_ALLOW_THREADS
+    //Py_BEGIN_ALLOW_THREADS
     ret = SQLGetData(cur->hstmt, (SQLUSMALLINT)(iCol+1), SQL_C_BIT, &ch, sizeof(ch), &cbFetched);
-    Py_END_ALLOW_THREADS
+    //Py_END_ALLOW_THREADS
 
     if (!SQL_SUCCEEDED(ret))
         return RaiseErrorFromHandle("SQLGetData", cur->cnxn->hdbc, cur->hstmt);
@@ -568,9 +568,9 @@ static PyObject* GetDataLong(Cursor* cur, Py_ssize_t iCol)
 
     SQLSMALLINT nCType = pinfo->is_unsigned ? SQL_C_ULONG : SQL_C_LONG;
 
-    Py_BEGIN_ALLOW_THREADS
+    //Py_BEGIN_ALLOW_THREADS
     ret = SQLGetData(cur->hstmt, (SQLUSMALLINT)(iCol+1), nCType, &value, sizeof(value), &cbFetched);
-    Py_END_ALLOW_THREADS
+    //Py_END_ALLOW_THREADS
     if (!SQL_SUCCEEDED(ret))
         return RaiseErrorFromHandle("SQLGetData", cur->cnxn->hdbc, cur->hstmt);
 
@@ -593,9 +593,9 @@ static PyObject* GetDataLongLong(Cursor* cur, Py_ssize_t iCol)
     SQLLEN      cbFetched;
     SQLRETURN   ret;
 
-    Py_BEGIN_ALLOW_THREADS
+    //Py_BEGIN_ALLOW_THREADS
     ret = SQLGetData(cur->hstmt, (SQLUSMALLINT)(iCol+1), nCType, &value, sizeof(value), &cbFetched);
-    Py_END_ALLOW_THREADS
+    //Py_END_ALLOW_THREADS
 
     if (!SQL_SUCCEEDED(ret))
         return RaiseErrorFromHandle("SQLGetData", cur->cnxn->hdbc, cur->hstmt);
@@ -616,9 +616,9 @@ static PyObject* GetDataDouble(Cursor* cur, Py_ssize_t iCol)
     SQLLEN cbFetched = 0;
     SQLRETURN ret;
 
-    Py_BEGIN_ALLOW_THREADS
+    //Py_BEGIN_ALLOW_THREADS
     ret = SQLGetData(cur->hstmt, (SQLUSMALLINT)(iCol+1), SQL_C_DOUBLE, &value, sizeof(value), &cbFetched);
-    Py_END_ALLOW_THREADS
+    //Py_END_ALLOW_THREADS
     if (!SQL_SUCCEEDED(ret))
         return RaiseErrorFromHandle("SQLGetData", cur->cnxn->hdbc, cur->hstmt);
 
@@ -636,9 +636,9 @@ static PyObject* GetSqlServerTime(Cursor* cur, Py_ssize_t iCol)
     SQLLEN cbFetched = 0;
     SQLRETURN ret;
 
-    Py_BEGIN_ALLOW_THREADS
+    //Py_BEGIN_ALLOW_THREADS
     ret = SQLGetData(cur->hstmt, (SQLUSMALLINT)(iCol+1), SQL_C_BINARY, &value, sizeof(value), &cbFetched);
-    Py_END_ALLOW_THREADS
+    //Py_END_ALLOW_THREADS
     if (!SQL_SUCCEEDED(ret))
         return RaiseErrorFromHandle("SQLGetData", cur->cnxn->hdbc, cur->hstmt);
 
@@ -657,9 +657,9 @@ static PyObject* GetDataTimestamp(Cursor* cur, Py_ssize_t iCol)
     SQLLEN cbFetched = 0;
     SQLRETURN ret;
 
-    Py_BEGIN_ALLOW_THREADS
+    //Py_BEGIN_ALLOW_THREADS
     ret = SQLGetData(cur->hstmt, (SQLUSMALLINT)(iCol+1), SQL_C_TYPE_TIMESTAMP, &value, sizeof(value), &cbFetched);
-    Py_END_ALLOW_THREADS
+    //Py_END_ALLOW_THREADS
     if (!SQL_SUCCEEDED(ret))
         return RaiseErrorFromHandle("SQLGetData", cur->cnxn->hdbc, cur->hstmt);
 

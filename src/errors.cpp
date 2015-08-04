@@ -1,7 +1,7 @@
 
-#include "pyodbc.h"
+#include "pxodbc.h"
 #include "errors.h"
-#include "pyodbcmodule.h"
+#include "pxodbcmodule.h"
 
 // Exceptions
 
@@ -236,9 +236,9 @@ PyObject* GetErrorFromHandle(const char* szFunction, HDBC hdbc, HSTMT hstmt)
         cchMsg       = 0;
 
         SQLRETURN ret;
-        Py_BEGIN_ALLOW_THREADS
+        //Py_BEGIN_ALLOW_THREADS
         ret = SQLGetDiagRec(nHandleType, h, iRecord, (SQLCHAR*)sqlstateT, &nNativeError, (SQLCHAR*)szMsg, (short)(_countof(szMsg)-1), &cchMsg);
-        Py_END_ALLOW_THREADS
+        //Py_END_ALLOW_THREADS
         if (!SQL_SUCCEEDED(ret))
             break;
 
@@ -304,9 +304,9 @@ static bool GetSqlState(HSTMT hstmt, char* szSqlState)
     SQLSMALLINT cchMsg;
     SQLRETURN ret;
 
-    Py_BEGIN_ALLOW_THREADS
+    //Py_BEGIN_ALLOW_THREADS
     ret = SQLGetDiagRec(SQL_HANDLE_STMT, hstmt, 1, (SQLCHAR*)szSqlState, &nNative, szMsg, cbMsg, &cchMsg);
-    Py_END_ALLOW_THREADS
+    //Py_END_ALLOW_THREADS
     return SQL_SUCCEEDED(ret);
 }
 

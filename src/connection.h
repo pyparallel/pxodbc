@@ -65,8 +65,8 @@ struct Connection
     //
     // If conv_count is zero, conv_types and conv_funcs will also be zero.
     //
-    // pyodbc uses this manual mapping for speed and portability.  The STL collection classes use the new operator and
-    // throw exceptions when out of memory.  pyodbc does not use any exceptions.
+    // pxodbc uses this manual mapping for speed and portability.  The STL collection classes use the new operator and
+    // throw exceptions when out of memory.  pxodbc does not use any exceptions.
 
     int conv_count;             // how many items are in conv_types and conv_funcs.
     SQLSMALLINT* conv_types;            // array of SQL_TYPEs to convert
@@ -75,6 +75,21 @@ struct Connection
 
 #define Connection_Check(op) PyObject_TypeCheck(op, &ConnectionType)
 #define Connection_CheckExact(op) (Py_TYPE(op) == &ConnectionType)
+
+/*
+PyObject *
+Connection_NewAsync(
+    PyObject *pConnectString,
+    HENV *phenv,
+    HDBC *phdbc,
+    HANDLE event
+);
+
+PyObject *
+Connection_CompleteAsync(
+    PyObject *cnxn
+);
+*/
 
 /*
  * Used by the module's connect function to create new connection objects.  If unable to connect to the database, an

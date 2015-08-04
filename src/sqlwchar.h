@@ -1,6 +1,6 @@
 
-#ifndef _PYODBCSQLWCHAR_H
-#define _PYODBCSQLWCHAR_H
+#ifndef _PXODBCSQLWCHAR_H
+#define _PXODBCSQLWCHAR_H
 
 typedef unsigned short ODBCCHAR;
 // I'm not sure why, but unixODBC seems to define SQLWCHAR as wchar_t even with
@@ -73,4 +73,4 @@ PyObject* PyUnicode_FromSQLWCHAR(const SQLWCHAR* sz, Py_ssize_t cch);
 
 SQLWCHAR* SQLWCHAR_FromUnicode(const Py_UNICODE* pch, Py_ssize_t len);
 
-#endif // _PYODBCSQLWCHAR_H
+#endif // _PXODBCSQLWCHAR_H
